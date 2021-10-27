@@ -8,6 +8,9 @@ import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.RelBuilder;
 import org.junit.Test;
 import  org.apache.calcite.rel.rules.FilterJoinRule;
+
+import java.sql.ResultSet;
+
 /**
  * 
  * Demo the filter early optimization.
@@ -73,6 +76,8 @@ public class CalcitePlannerHepTest {
         /**
          * Execute
          */
-        CalciteRel.executeQuery(bestRelNode);
+        ResultSet resultSet = CalciteRel.executeQuery(bestRelNode);
+        CalciteJdbc.printResultSet(resultSet);
+
     }
 }

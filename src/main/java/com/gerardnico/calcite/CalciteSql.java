@@ -107,7 +107,7 @@ public class CalciteSql {
      * @return the sql representation of the relNode
      */
     static public String fromRelNodeToSql(RelNode relNode, SqlDialect sqlDialect) {
-        SqlPrettyWriter sqlWriter = new SqlPrettyWriter();
+        SqlPrettyWriter sqlWriter = new SqlPrettyWriter(SqlPrettyWriter.config().withDialect(sqlDialect));
         RelToSqlConverter relToSqlConverter = new RelToSqlConverter(sqlDialect);
         SqlSelect sqlSelect = relToSqlConverter.visitChild(0, relNode).asSelect();
         return sqlWriter.format(sqlSelect);

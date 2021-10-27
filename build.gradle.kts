@@ -23,6 +23,8 @@ repositories {
 dependencies {
     // This dependency is used by the application.
     implementation("com.google.guava:guava:28.0-jre")
+    implementation("dm.jdbc:DmJdbcDriver18:1.0")
+    implementation("mysql:mysql-connector-java:8.0.26")
 
     // Hsqldb is used in the code
     implementation("org.hsqldb:hsqldb:2.5.0")
@@ -34,6 +36,7 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.apache.calcite/calcite-core
     compile("org.apache.calcite:calcite-core:1.22.0")
+    compile("org.apache.calcite:calcite-server:1.22.0")
 
     // Use JUnit test framework
     testImplementation("junit:junit:4.12")

@@ -14,6 +14,7 @@ import org.apache.calcite.tools.*;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,6 +46,25 @@ public class CalciteRel {
         return RelBuilder.create(config);
     }
 
+    public static RelBuilder createDataStoreBasedRelBuilder(String dbName, DataSource dataSource) {
+        SchemaPlus schemaPlus = CalciteJdbc.getSchema(dbName, dataSource);
+        FrameworkConfig config = Frameworks.newConfigBuilder()
+                .parserConfig(SqlParser.Config.DEFAULT)
+                .defaultSchema(schemaPlus)
+                .programs(CalciteProgram.createHeuristicJoinOrderProgram())
+                .build();
+        return RelBuilder.create(config);
+    }
+
+    public static RelBuilder createDataStoreBasedRelBuilder(String dbName,SqlParser.Config parserConfig, DataSource dataSource) {
+        SchemaPlus schemaPlus = CalciteJdbc.getSchema(dbName, dataSource);
+        FrameworkConfig config = Frameworks.newConfigBuilder()
+                .parserConfig(parserConfig)
+                .defaultSchema(schemaPlus)
+                .programs(CalciteProgram.createHeuristicJoinOrderProgram())
+                .build();
+        return RelBuilder.create(config);
+    }
     /**
      * Print a relational expression (ie sane as {@link #explain(RelNode)}
      *
@@ -94,13 +114,21 @@ public class CalciteRel {
     }
 
     /**
-     *
      * @param relNode
      * @param defaultSchema - the schema only if the relNode is physical
      * @return
      */
     public static ResultSet executeQuery(RelNode relNode, SchemaPlus defaultSchema) {
         PreparedStatement run = CalciteRelRunners.run(relNode, defaultSchema);
+        try {
+            return run.executeQuery();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static ResultSet executeQueryFromConnection(RelNode relNode, Connection connection) {
+        PreparedStatement run = CalciteRelRunners.runFromConnection(relNode, connection);
         try {
             return run.executeQuery();
         } catch (SQLException e) {
@@ -158,12 +186,13 @@ public class CalciteRel {
 
     /**
      * Utility function to:
-     *   * print a relational expression
-     *   * print the SQL equivalent
-     *   * to run it
+     * * print a relational expression
+     * * print the SQL equivalent
+     * * to run it
+     *
      * @param relNode
      */
-    public static void showExplainSqlAndRun(RelNode relNode){
+    public static void showExplainSqlAndRun(RelNode relNode) {
         System.out.println("Print the relational expression");
         CalciteRel.print(relNode);
         System.out.println();

@@ -14,12 +14,14 @@ import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.LogicalTableScan;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.tools.RelRunner;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * Copy and modification of the {@link org.apache.calcite.tools.RelRunners}.
@@ -60,14 +62,14 @@ public class CalciteRelRunners {
             }
         };
         rel = rel.accept(shuttle);
-        try (Connection connection = DriverManager.getConnection("jdbc:calcite:")) {
+
+        try (CalciteConnection connection = getConnection()) {
             /**
              * To prevent java.sql.SQLException: exception while executing query: null
              * we build the schema
              */
             if (schemaPlus != null) {
-                CalciteConnection calciteConnection = (CalciteConnection) connection;
-                SchemaPlus rootSchema = calciteConnection.getRootSchema();
+                SchemaPlus rootSchema = connection.getRootSchema();
                 Schema reflectiveSchema = schemaPlus.unwrap(ReflectiveSchema.class);
                 rootSchema.add(schemaPlus.getName(), reflectiveSchema);
             }
@@ -76,5 +78,48 @@ public class CalciteRelRunners {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static PreparedStatement runFromConnection(RelNode rel, Connection connection) {
+        final RelShuttle shuttle = new RelHomogeneousShuttle() {
+            @Override
+            public RelNode visit(TableScan scan) {
+                final RelOptTable table = scan.getTable();
+                if (scan instanceof LogicalTableScan
+                        && Bindables.BindableTableScan.canHandle(table)) {
+                    // Always replace the LogicalTableScan with BindableTableScan
+                    // because it's implementation does not require a "schema" as context.
+                    return Bindables.BindableTableScan.create(scan.getCluster(), table);
+                }
+                return super.visit(scan);
+            }
+        };
+        rel = rel.accept(shuttle);
+
+        try {
+            RelRunner runner = connection.unwrap(RelRunner.class);
+            return runner.prepare(rel);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * @return the dialect for this connection
+     */
+    public static SqlDialect getDialect(Connection connection) {
+        return CalciteSqlDialect.getDialectFromSqlConnection(connection);
+    }
+
+    /**
+     * @return the dialect for this connection
+     */
+    public static SqlDialect getDialect() {
+        return CalciteSqlDialect.getDialectFromSqlConnection(getConnection());
+    }
+
+    public static CalciteConnection getConnection() {
+        return CalciteConnections.getConnectionWithModel("src/test/resources/datasource/sales.json");
     }
 }

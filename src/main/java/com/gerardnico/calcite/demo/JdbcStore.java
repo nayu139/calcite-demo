@@ -49,10 +49,10 @@ public class JdbcStore {
     }
 
     public static JdbcStore createDefault() {
-        return new JdbcStore(null, null, null, null);
+        return new JdbcStore(null,null,null,null);
     }
 
-    DataSource getDataSource() {
+    public DataSource getDataSource() {
         if (dataSource == null) {
             dataSource = JdbcSchema.dataSource(url, driverClassName, userName, password);
         }
@@ -62,6 +62,13 @@ public class JdbcStore {
 
     public RelBuilder getRelBuilder() {
         return CalciteRel.createDataStoreBasedRelBuilder(dataSource);
+    }
+
+    public RelBuilder getRelBuilder(String dbName) {
+        return CalciteRel.createDataStoreBasedRelBuilder(dbName,dataSource);
+    }
+    public RelBuilder getRelBuilder(String dbName,SqlParser.Config parserConfig) {
+        return CalciteRel.createDataStoreBasedRelBuilder(dbName,parserConfig,dataSource);
     }
 
     /**
@@ -98,6 +105,21 @@ public class JdbcStore {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Execute a print a sql query
+     *
+     * @param sqlQuery
+     */
+    public void execute(String sqlQuery) {
+        try {
+            boolean execute = getConnection().createStatement().execute(sqlQuery);
+        } catch (SQLException e) {
+            System.out.println("FAILED! - " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * @return the dialect for this connection

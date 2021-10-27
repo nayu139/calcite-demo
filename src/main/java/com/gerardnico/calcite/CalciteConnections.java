@@ -46,7 +46,8 @@ public class CalciteConnections {
             /**
              * You can define your with extra connection properties
              */
-            info.setProperty(CalciteConnectionProperty.CASE_SENSITIVE.name(),"false");
+//            info.setProperty(CalciteConnectionProperty.CASE_SENSITIVE.name(),"false");
+//            info.setProperty("parserFactory","org.apache.calcite.sql.parser.ddl.SqlDdlParserImpl#FACTORY");
             return  unwrap(DriverManager.getConnection("jdbc:calcite:", info));
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);

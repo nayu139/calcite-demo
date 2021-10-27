@@ -33,6 +33,7 @@ public class CalcitePlanner {
         hepPlanner.addRule(LoptOptimizeJoinRule.INSTANCE);
         hepPlanner.addRule(MultiJoinOptimizeBushyRule.INSTANCE);
         hepPlanner.addRule(JoinPushThroughJoinRule.LEFT);
+//        hepPlanner.addRule(FilterJoinRule.FILTER_ON_JOIN);
         hepPlanner.addRule(new CoerceInputsRule(LogicalUnion.class, false, RelFactories.LOGICAL_BUILDER));
         hepPlanner.addRule(new CoerceInputsRule(LogicalIntersect.class, false, RelFactories.LOGICAL_BUILDER));
         return hepPlanner;

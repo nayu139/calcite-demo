@@ -49,7 +49,12 @@ public class CalciteFramework {
                 .parserConfig(CalciteSqlParser.getDefault())
                 .build();
     }
-
+    public static FrameworkConfig getNewConfig(SchemaPlus schemaPlus,SqlParser.Config parserConfig){
+        return Frameworks.newConfigBuilder()
+                .defaultSchema(schemaPlus)
+                .parserConfig(parserConfig)
+                .build();
+    }
 
     /**
      * Creates a config based on the SCOTT schema, with tables EMP and DEPT.

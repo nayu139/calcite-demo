@@ -23,7 +23,7 @@ public class CalciteModel {
 
             Properties properties = new Properties();
             properties.setProperty("model", modelPath);
-            properties.setProperty(CalciteConnectionProperty.CASE_SENSITIVE.name(),"false");
+//            properties.setProperty(CalciteConnectionProperty.CASE_SENSITIVE.name(),"false");
             Class.forName("org.apache.calcite.jdbc.Driver");
             Connection connection = DriverManager.getConnection("jdbc:calcite:", properties);
 
